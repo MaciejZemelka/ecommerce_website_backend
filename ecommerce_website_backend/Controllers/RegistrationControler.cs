@@ -28,7 +28,7 @@ namespace Chat.Server.Controllers
         {
             SqlConnection con = new SqlConnection(_configuration.GetConnectionString("ecommerce_DBcon"));
             string password = PasswordEncryption.EncryptionedPassword(registration.Password);
-            SqlCommand cmd = new SqlCommand("INSERT INTO users(Username,Email,Password,Permission) VALUES('" + registration.Username + "','" + registration.Email + "','" + password + "','" + registration.Permission + "')", con);
+            SqlCommand cmd = new SqlCommand("INSERT INTO users(Username,Email,Password,Permission, CreatedDate) VALUES('" + registration.Username + "','" + registration.Email + "','" + password + "','" + registration.Permission + "','"+registration.CreatedDate+"')", con);
             con.Open();
             int i = cmd.ExecuteNonQuery();
             con.Close();
