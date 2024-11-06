@@ -1,6 +1,6 @@
-﻿using Chat.Server.models;
-using ecommerce_website_backend.Functions;
+﻿using ecommerce_website_backend.Functions;
 using ecommerce_website_backend.models;
+using ecommerce_website_backend.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -9,17 +9,22 @@ using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using System.Security.AccessControl;
 
-namespace Chat.Server.Controllers
+
+
+
+namespace ecommerce_website_backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class RegistrationController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly JwtService _jwtService;
 
-        public RegistrationController(IConfiguration configuration)
+        public RegistrationController(IConfiguration configuration, JwtService jwtService)
         {
             _configuration = configuration;
+            _jwtService = jwtService;
         }
 
         [HttpPost]
@@ -27,8 +32,8 @@ namespace Chat.Server.Controllers
         public string Registration(Registration registration)
         {
             SqlConnection con = new SqlConnection(_configuration.GetConnectionString("ecommerce_DBcon"));
-            string password = PasswordEncryption.EncryptionedPassword(registration.Password);
-            SqlCommand cmd = new SqlCommand("INSERT INTO users(Username,Email,Password,Permission, CreatedDate) VALUES('" + registration.Username + "','" + registration.Email + "','" + password + "','" + registration.Permission + "','"+registration.CreatedDate+"')", con);
+            string HashedPass = PasswordEncryption.EncryptionedPassword(registration.Password);
+            SqlCommand cmd = new SqlCommand("INSERT INTO users(Username,Email,Password,Permission, CreatedDate) VALUES('" + registration.Username + "','" + registration.Email + "','" + HashedPass + "','" + registration.Permission + "','" + registration.CreatedDate + "')", con);
             con.Open();
             int i = cmd.ExecuteNonQuery();
             con.Close();
@@ -44,39 +49,42 @@ namespace Chat.Server.Controllers
 
         [HttpPost]
         [Route("login")]
-        public string Login(Login login)
+        public IActionResult Login(Login login)
         {
-            SqlConnection con = new SqlConnection(_configuration.GetConnectionString("ecommerce_DBcon"));
-            SqlCommand cmd = new SqlCommand("Select count(*) from Users where Email='" + login.Email+"'", con);
-            con.Open();
-            int i = (int)cmd.ExecuteScalar();
-            if(i == 0)
+            using (var con = new SqlConnection(_configuration.GetConnectionString("ecommerce_DBcon")))
             {
-                return "No user";
-            }
-            else
-            {
-                SqlCommand cmd2 = new SqlCommand("Select Password from Users where Email ='" + login.Email+"'", con);
-                using (SqlDataReader reader = cmd2.ExecuteReader())
+                SqlCommand cmd = new SqlCommand("SELECT Password, Id FROM Users WHERE Email = @Email", con);
+                cmd.Parameters.AddWithValue("@Email", login.Email);
+
+                con.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
                     {
-                        string password2 = String.Format("{0}", reader["password"]);
-                        string checkPass = PasswordEncryption.DecryptionedPassword(password2);
-                        if(checkPass == login.Password)
+                        string passwordHash = reader["Password"].ToString();
+                        string userId = reader["Id"].ToString();
+
+                        bool isPasswordValid = PasswordEncryption.VerifyPassword(login.Password, passwordHash);
+                        if (isPasswordValid)
                         {
-                            return "Valid User";
+                            var accessToken = _jwtService.GenerateAccessToken(userId);
+                            var refreshToken = _jwtService.GenerateRefreshToken();
+
+                            // Opcjonalnie można zapisać refresh token w bazie danych dla użytkownika
+
+                            return Ok(new { AccessToken = accessToken, RefreshToken = refreshToken });
                         }
                         else
                         {
-                            return "Wrong password";
+                            return Unauthorized("Nieprawidłowe hasło");
                         }
-
+                    }
+                    else
+                    {
+                        return NotFound("Nie znaleziono użytkownika");
                     }
                 }
             }
-            con.Close();
-            return "Server error";
         }
     }
 }

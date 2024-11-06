@@ -1,21 +1,55 @@
+using ecommerce_website_backend.models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Dodaj konfiguracjê JWT z appsettings.json
+var jwtSection = builder.Configuration.GetSection("Jwt");
+var jwtKey = jwtSection.GetValue<string>("Key");
+var jwtIssuer = jwtSection.GetValue<string>("Issuer");
+var jwtAudience = jwtSection.GetValue<string>("Audience");
+
+builder.Services.Configure<JwtSettings>(jwtSection);
+builder.Services.AddSingleton<JwtService>();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+    };
+});
+
+// Dodaj CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+// Dodaj inne us³ugi
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// Dodaj obs³ugê CORS w metodzie ConfigureServices
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll",
-        builder =>
-        {
-            builder.AllowAnyOrigin()
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        });
-});
 
 var app = builder.Build();
 
@@ -29,15 +63,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Ustawienie kolejnoœci: Routing, CORS, Uwierzytelnianie, Autoryzacja
+app.UseRouting();
+app.UseCors("AllowAll");
+app.UseAuthentication();  // Dodaj obs³ugê JWT przed autoryzacj¹
 app.UseAuthorization();
 
-app.UseRouting(); // Upewnij siê, ¿e UseRouting jest wywo³ywane przed UseCors
-
-// Dodaj obs³ugê CORS w konfiguracji HTTP request pipeline
-app.UseCors("AllowAll");
-
 app.MapControllers();
-
 app.MapFallbackToFile("/index.html");
 
 app.Run();

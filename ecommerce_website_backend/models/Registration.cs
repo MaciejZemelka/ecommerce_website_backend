@@ -1,4 +1,4 @@
-﻿namespace Chat.Server.models
+﻿namespace ecommerce_website_backend.models
 {
     public class Registration
     {
