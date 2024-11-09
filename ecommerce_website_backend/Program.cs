@@ -1,60 +1,77 @@
 using ecommerce_website_backend.models;
+using ecommerce_website_backend.Functions; // Zak³adam, ¿e JwtService znajduje siê tutaj
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Dodaj konfiguracjê JWT z appsettings.json
+// Configure JWT
 var jwtSection = builder.Configuration.GetSection("Jwt");
-var jwtKey = jwtSection.GetValue<string>("Key");
-var jwtIssuer = jwtSection.GetValue<string>("Issuer");
-var jwtAudience = jwtSection.GetValue<string>("Audience");
-
 builder.Services.Configure<JwtSettings>(jwtSection);
-builder.Services.AddSingleton<JwtService>();
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
+// Rejestracja JwtService w DI (Dependency Injection)
+builder.Services.AddSingleton<JwtService>(); // lub .AddScoped() jeœli JwtService jest zale¿ny od requestu
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtIssuer,
-        ValidAudience = jwtAudience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
-    };
-});
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSection["Issuer"],
+            ValidAudience = jwtSection["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSection["Key"]))
+        };
+    });
 
-// Dodaj CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
     {
         builder.AllowAnyOrigin()
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+               .AllowAnyHeader()
+               .AllowAnyMethod();
     });
 });
 
-// Dodaj inne us³ugi
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ecommerce_website_backend", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Podaj token JWT w formacie: Bearer {token}"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 var app = builder.Build();
-
-app.UseDefaultFiles();
-app.UseStaticFiles();
 
 if (app.Environment.IsDevelopment())
 {
@@ -63,14 +80,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// Ustawienie kolejnoœci: Routing, CORS, Uwierzytelnianie, Autoryzacja
-app.UseRouting();
 app.UseCors("AllowAll");
-app.UseAuthentication();  // Dodaj obs³ugê JWT przed autoryzacj¹
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapFallbackToFile("/index.html");
-
 app.Run();

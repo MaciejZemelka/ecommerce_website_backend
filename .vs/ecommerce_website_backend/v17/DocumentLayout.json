@@ -3,6 +3,20 @@
   "WorkspaceRootPath": "Z:\\FullStackProjects\\ecommerce_website_backend\\ecommerce_website_backend\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{668C3F65-0843-4F73-89DA-45745B66CBB0}|ecommerce_website_backend\\ecommerce_website_backend.csproj|z:\\fullstackprojects\\ecommerce_website_backend\\ecommerce_website_backend\\ecommerce_website_backend\\controllers\\registrationcontroler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{668C3F65-0843-4F73-89DA-45745B66CBB0}|ecommerce_website_backend\\ecommerce_website_backend.csproj|solutionrelative:ecommerce_website_backend\\controllers\\registrationcontroler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{668C3F65-0843-4F73-89DA-45745B66CBB0}|ecommerce_website_backend\\ecommerce_website_backend.csproj|z:\\fullstackprojects\\ecommerce_website_backend\\ecommerce_website_backend\\ecommerce_website_backend\\controllers\\jwtservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{668C3F65-0843-4F73-89DA-45745B66CBB0}|ecommerce_website_backend\\ecommerce_website_backend.csproj|solutionrelative:ecommerce_website_backend\\controllers\\jwtservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|ViewDataWindow_MSSQL__/DESKTOP_56JN8FK/ecommerce_DB/True/SqlTable/dbo.Users.sql||{0058A1F7-65F3-4DB9-B3D0-CA7E64DD73CD}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|ViewDataWindow_MSSQL__/DESKTOP_56JN8FK/ecommerce_DB/True/SqlTable/dbo.RefreshToken.sql||{0058A1F7-65F3-4DB9-B3D0-CA7E64DD73CD}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{668C3F65-0843-4F73-89DA-45745B66CBB0}|ecommerce_website_backend\\ecommerce_website_backend.csproj|z:\\fullstackprojects\\ecommerce_website_backend\\ecommerce_website_backend\\ecommerce_website_backend\\models\\jwtsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{668C3F65-0843-4F73-89DA-45745B66CBB0}|ecommerce_website_backend\\ecommerce_website_backend.csproj|solutionrelative:ecommerce_website_backend\\models\\jwtsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
@@ -14,11 +28,55 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "dbo.RefreshToken [Data]",
+              "DocumentMoniker": "ViewDataWindow_MSSQL__/DESKTOP_56JN8FK/ecommerce_DB/True/SqlTable/dbo.RefreshToken.sql",
+              "ToolTip": "dbo.RefreshToken [Data]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2024-11-08T21:36:03.55Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "dbo.Users [Data]",
+              "DocumentMoniker": "ViewDataWindow_MSSQL__/DESKTOP_56JN8FK/ecommerce_DB/True/SqlTable/dbo.Users.sql",
+              "ToolTip": "dbo.Users [Data]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2024-11-08T21:34:16.607Z"
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "RegistrationControler.cs",
+              "DocumentMoniker": "Z:\\FullStackProjects\\ecommerce_website_backend\\ecommerce_website_backend\\ecommerce_website_backend\\Controllers\\RegistrationControler.cs",
+              "RelativeDocumentMoniker": "ecommerce_website_backend\\Controllers\\RegistrationControler.cs",
+              "ToolTip": "Z:\\FullStackProjects\\ecommerce_website_backend\\ecommerce_website_backend\\ecommerce_website_backend\\Controllers\\RegistrationControler.cs",
+              "RelativeToolTip": "ecommerce_website_backend\\Controllers\\RegistrationControler.cs",
+              "ViewState": "AQIAADMAAAAAAAAAAAAAAHYAAAAcAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-08T20:55:24.007Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "JwtService.cs",
+              "DocumentMoniker": "Z:\\FullStackProjects\\ecommerce_website_backend\\ecommerce_website_backend\\ecommerce_website_backend\\Controllers\\JwtService.cs",
+              "RelativeDocumentMoniker": "ecommerce_website_backend\\Controllers\\JwtService.cs",
+              "ToolTip": "Z:\\FullStackProjects\\ecommerce_website_backend\\ecommerce_website_backend\\ecommerce_website_backend\\Controllers\\JwtService.cs",
+              "RelativeToolTip": "ecommerce_website_backend\\Controllers\\JwtService.cs",
+              "ViewState": "AQIAAAYAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-08T20:55:05.553Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "JwtSettings.cs",
               "DocumentMoniker": "Z:\\FullStackProjects\\ecommerce_website_backend\\ecommerce_website_backend\\ecommerce_website_backend\\models\\JwtSettings.cs",
               "RelativeDocumentMoniker": "ecommerce_website_backend\\models\\JwtSettings.cs",
@@ -26,8 +84,7 @@
               "RelativeToolTip": "ecommerce_website_backend\\models\\JwtSettings.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAsAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-11-06T14:06:30.056Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-11-06T14:06:30.056Z"
             }
           ]
         }
