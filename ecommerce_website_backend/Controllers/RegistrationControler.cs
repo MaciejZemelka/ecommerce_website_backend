@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using System.Security.AccessControl;
+using System.Runtime.InteropServices;
 
 
 
@@ -56,15 +57,32 @@ namespace ecommerce_website_backend.Controllers
         }
         private string GetUserIdByRefreshToken(string refreshToken)
         {
-            using (var con = new SqlConnection(_configuration.GetConnectionString("ecommerce_DBcon")))
+            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("ecommerce_DBcon")))
             {
-                var cmd = new SqlCommand("SELECT UserId FROM RefreshTokens WHERE Token = @Token AND ExpirationDate > @CurrentDate", con);
-                cmd.Parameters.AddWithValue("@Token", refreshToken);
-                cmd.Parameters.AddWithValue("@CurrentDate", DateTime.UtcNow);
-
+                SqlCommand cmd = new SqlCommand("SELECT user_id FROM RefreshToken WHERE RefreshToken = @RefreshToken AND ExpirationDate > @CurrentDate ", con);
+                cmd.Parameters.AddWithValue("@RefreshToken", refreshToken);
+               
+                cmd.Parameters.AddWithValue("@CurrentDate", DateTime.UtcNow.Date);
                 con.Open();
-                var userId = cmd.ExecuteScalar() as string;
-                return userId;
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        string userId = reader["user_id"].ToString();
+    
+                        con.Close();
+                        return userId;
+                    }
+                    else
+                    {
+                        return "";
+                    }
+
+                }
+                    
+                
+                
+                
             }
         }
 
@@ -130,14 +148,15 @@ namespace ecommerce_website_backend.Controllers
         }
         [HttpPost]
         [Route("new-Access-token")]
-        public IActionResult newAccessToken(string refreshToken)
+        public IActionResult newAccessToken(GetRefreshToken refreshToken)
         {
-            // Sprawdź w bazie danych, czy refreshToken jest ważny i przypisany do użytkownika
-            var userId = GetUserIdByRefreshToken(refreshToken);
+
+            string userId = GetUserIdByRefreshToken(refreshToken.RefreshToken);
             if (userId == null)
             {
                 return Unauthorized("Invalid refresh token");
             }
+
 
             var newAccessToken = _jwtService.GenerateAccessToken(userId);
             
@@ -146,6 +165,27 @@ namespace ecommerce_website_backend.Controllers
             return Ok(new { AccessToken = newAccessToken});
         }
 
+        [HttpPost]
+        [Route("isRefreshTokenValid")]
+        public IActionResult isRefreshTokenValid(GetRefreshToken refreshToken)
+        {
+
+            string userId = GetUserIdByRefreshToken(refreshToken.RefreshToken);
+
+            if (userId == "")
+            {
+                return Unauthorized("Invalid refresh token");
+            }
+
+
+            var newAccessToken = _jwtService.GenerateAccessToken(userId);
+
+
+
+            return Ok("isValid");
+        }
+
 
     }
+
 }
