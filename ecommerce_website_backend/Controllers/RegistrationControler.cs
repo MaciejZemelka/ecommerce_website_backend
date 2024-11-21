@@ -69,7 +69,7 @@ namespace ecommerce_website_backend.Controllers
                     if (reader.Read())
                     {
                         string userId = reader["user_id"].ToString();
-    
+
                         con.Close();
                         return userId;
                     }
@@ -77,12 +77,7 @@ namespace ecommerce_website_backend.Controllers
                     {
                         return "";
                     }
-
                 }
-                    
-                
-                
-                
             }
         }
 
@@ -98,6 +93,36 @@ namespace ecommerce_website_backend.Controllers
             con.Close();
             if (i > 0)
             {
+                con.Open();
+                SqlCommand cmd2 = new SqlCommand("SELECT Id FROM Users WHERE Email = @Email", con);
+                cmd2.Parameters.AddWithValue("@Email", registration.Email);
+                string userId;
+
+                using (SqlDataReader reader = cmd2.ExecuteReader())
+                {
+                    if(reader.Read())
+                    {
+                        userId = reader["ID"].ToString();
+                        con.Close();
+                    }
+                    else
+                    {
+                        con.Close();
+                        Console.WriteLine("bład przy read id");
+                        return Unauthorized("asd");
+                    }
+                }
+                SqlCommand cmd3 = new SqlCommand("INSERT INTO UserDetails(user_id) VALUES('"+ userId+"')", con);
+                SqlCommand cmd4 = new SqlCommand("INSERT INTO UserAddresses(user_id) VALUES('" + userId + "')", con);
+                con.Open();
+
+                    cmd3.ExecuteNonQuery();
+                    cmd4.ExecuteNonQuery();
+                con.Close();
+
+
+
+
                 return Ok(new { message = "Data inserted" });
             }
             else
