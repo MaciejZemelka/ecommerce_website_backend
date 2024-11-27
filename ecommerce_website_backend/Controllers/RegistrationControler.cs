@@ -113,11 +113,9 @@ namespace ecommerce_website_backend.Controllers
                     }
                 }
                 SqlCommand cmd3 = new SqlCommand("INSERT INTO UserDetails(user_id) VALUES('"+ userId+"')", con);
-                SqlCommand cmd4 = new SqlCommand("INSERT INTO UserAddresses(user_id) VALUES('" + userId + "')", con);
                 con.Open();
 
                     cmd3.ExecuteNonQuery();
-                    cmd4.ExecuteNonQuery();
                 con.Close();
 
 

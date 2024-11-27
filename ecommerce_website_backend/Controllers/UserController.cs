@@ -9,6 +9,11 @@ using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using System.Security.AccessControl;
 using System.Runtime.InteropServices;
+using System.Collections.Immutable;
+using Microsoft.AspNetCore.SignalR.Protocol;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using System.Reflection.Metadata.Ecma335;
 
 
 namespace ecommerce_website_backend.Controllers
@@ -60,10 +65,9 @@ namespace ecommerce_website_backend.Controllers
             using (var con = new SqlConnection(_configuration.GetConnectionString("ecommerce_DBcon")))
             {
                 SqlCommand cmd = new SqlCommand("SELECT " +
-                    " u.Email, u.CreatedDate, ud.first_name, ud.last_name, ud.PhoneNumber, ud.date_of_birth, ud.gender, ua.Country, ua.City, ua.StreetName, ua.HouseNumber, ua.ApartmentNumber, ua.PostalCode" +
+                    " u.Email, u.CreatedDate, ud.first_name, ud.last_name, ud.PhoneNumber, ud.date_of_birth, ud.gender" +
                     " FROM Users u" +
                     " LEFT JOIN UserDetails ud ON u.ID = ud.user_id " +
-                    " LEFT JOIN UserAddresses ua ON u.ID = ua.user_id " +
                     " WHERE u.ID = @userId ", con);
                 cmd.Parameters.AddWithValue("@userId", userId);
 
@@ -79,13 +83,6 @@ namespace ecommerce_website_backend.Controllers
                         string phoneNumber = reader["PhoneNumber"]?.ToString();
                         string dateOfBirth = reader["date_of_birth"]?.ToString();
                         string gender = reader["gender"]?.ToString();
-                        string country = reader["Country"]?.ToString();
-                        string city = reader["City"]?.ToString();
-                        string streetName = reader["StreetName"]?.ToString();
-                        string houseNumber = reader["HouseNumber"]?.ToString();
-                        string apartmentNumber = reader["ApartmentNumber"]?.ToString();
-                        string postalCode = reader["PostalCode"]?.ToString();
-
                         con.Close();
                         return Ok(new
                         {
@@ -96,19 +93,116 @@ namespace ecommerce_website_backend.Controllers
                             phoneNumber = phoneNumber,
                             dateOfBirth = dateOfBirth,
                             gender = gender,
-                            country = country,
-                            city = city,
-                            streetName = streetName,
-                            houseNumber = houseNumber,
-                            apartmentNumber = apartmentNumber,
-                            postalCode = postalCode
-
                         });
                     }
                     return NotFound("user not found");
                 }
             }
         }
-    }
 
+        [HttpPost]
+        [Route("UserAddresses")]
+        public IActionResult UserAddresses(GetRefreshToken refreshToken)
+        {
+            string userId = GetUserIdByRefreshToken(refreshToken.RefreshToken);
+
+            using (var con = new SqlConnection(_configuration.GetConnectionString("ecommerce_DBcon")))
+            {
+                SqlCommand cmd = new SqlCommand("SELECT " +
+                    " ua.address_id, ua.Country, ua.City, ua.StreetName, ua.HouseNumber, ua.ApartmentNumber, ua.PostalCode" +
+                    " FROM Users u" +
+                    " LEFT JOIN UserAddresses ua ON u.ID = ua.user_id " +
+                    " WHERE u.ID = @userId ", con);
+                cmd.Parameters.AddWithValue("@userId", userId);
+
+                con.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    var addresses = new List<object>();
+                    bool userExists = false;
+                    bool hasAddress = false;
+
+                    while (reader.Read())
+                    {
+                        if (!userExists)
+                        {
+                            userExists = true;
+                        }
+
+                        hasAddress = true;
+
+                        if (reader["address_id"]?.ToString() == "")
+                        {
+                            con.Close();
+                            return NotFound("User has no addresses");
+                        }
+
+                        var address = new
+                        {
+
+                            id = reader["address_id"]?.ToString(),
+                            Country = reader["Country"]?.ToString(),
+                            City = reader["City"]?.ToString(),
+                            StreetName = reader["StreetName"]?.ToString(),
+                            HouseNumber = reader["HouseNumber"]?.ToString(),
+                            ApartmentNumber = reader["ApartmentNumber"]?.ToString(),
+                            PostalCode = reader["PostalCode"]?.ToString()
+                        };
+
+
+
+                        addresses.Add(address);
+
+
+                    }
+
+                    con.Close();
+
+                    if (addresses.Count > 0)
+                    {
+
+                        return Ok(new { Addresses = addresses });
+                    }
+
+                    return NotFound("User does not exist." + addresses.Count);
+                }
+
+            }
+        }
+
+        [HttpPost]
+        [Route("AddNewAddress")]
+        [Authorize]
+        public IActionResult AddNewAddress(NewAddress newAddress)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Token is invalid or missing.");
+            }
+
+            if (int.TryParse(userIdClaim.Value, out int userId)) ;
+               
+         
+            
+            
+            SqlConnection con = new SqlConnection(_configuration.GetConnectionString("ecommerce_DBcon"));
+            SqlCommand cmd = new SqlCommand("INSERT INTO UserAddresses(user_id, Country, City, StreetName, HouseNumber, ApartmentNumber, PostalCode) Values(@userId,@Country,@City,@StreetName,@HouseNumber,@ApartmentNumber,@PostalCode)", con);
+            cmd.Parameters.AddWithValue("@UserId", userId);
+            cmd.Parameters.AddWithValue("@Country", newAddress.Country);
+            cmd.Parameters.AddWithValue("@City", newAddress.City);
+            cmd.Parameters.AddWithValue("@StreetName", newAddress.StreetName);
+            cmd.Parameters.AddWithValue("@HouseNumber", newAddress.HouseNumber);
+            cmd.Parameters.AddWithValue("@ApartmentNumber", newAddress.ApartmentNumber);
+            cmd.Parameters.AddWithValue("@PostalCode", newAddress.PostalCode);
+
+            con.Open();
+            cmd.ExecuteNonQuery();
+            con.Close();
+
+            return Ok("Data inserted");     
+        }
+            
+    
+    }
 }

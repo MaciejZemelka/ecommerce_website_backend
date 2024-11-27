@@ -47,28 +47,28 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "ecommerce_website_backend", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Podaj token JWT w formacie: Bearer {token}"
-    });
+     {
+         Name = "Authorization",
+         Type = SecuritySchemeType.ApiKey,
+         Scheme = "Bearer",
+         BearerFormat = "JWT",
+         In = ParameterLocation.Header,
+         Description = "Podaj token JWT w formacie: Bearer {token}"
+     });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
+{
     {
+        new OpenApiSecurityScheme
         {
-            new OpenApiSecurityScheme
+            Reference = new OpenApiReference
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
+                Type = ReferenceType.SecurityScheme,
+                Id = "Bearer"
+            }
+        },
+        Array.Empty<string>()
+    }
+});
 });
 
 var app = builder.Build();
