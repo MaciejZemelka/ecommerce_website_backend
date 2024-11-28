@@ -58,9 +58,16 @@ namespace ecommerce_website_backend.Controllers
 
         [HttpPost]
         [Route("UserDetails")]
-        public IActionResult UserDetails(GetRefreshToken refreshToken)
+        [Authorize]
+        public IActionResult UserDetails()
         {
-            string userId = GetUserIdByRefreshToken(refreshToken.RefreshToken);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Token is invalid or missing.");
+            }
+
+            if (int.TryParse(userIdClaim.Value, out int userId)) ;
 
             using (var con = new SqlConnection(_configuration.GetConnectionString("ecommerce_DBcon")))
             {
@@ -81,7 +88,7 @@ namespace ecommerce_website_backend.Controllers
                         string firstName = reader["first_name"]?.ToString();
                         string lastName = reader["last_name"]?.ToString();
                         string phoneNumber = reader["PhoneNumber"]?.ToString();
-                        string dateOfBirth = reader["date_of_birth"]?.ToString();
+                        string dateOfBirth = Convert.ToDateTime(reader["date_of_birth"]).ToString("yyyy-MM-dd");
                         string gender = reader["gender"]?.ToString();
                         con.Close();
                         return Ok(new
@@ -101,10 +108,48 @@ namespace ecommerce_website_backend.Controllers
         }
 
         [HttpPost]
-        [Route("UserAddresses")]
-        public IActionResult UserAddresses(GetRefreshToken refreshToken)
+        [Route("UpdateUserDetails")]
+        public IActionResult UpdateUserDetails(UpdateUserDetails userDetails)
         {
-            string userId = GetUserIdByRefreshToken(refreshToken.RefreshToken);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Token is invalid or missing.");
+            }
+
+            if (int.TryParse(userIdClaim.Value, out int userId)) ;
+
+            using (var con = new SqlConnection(_configuration.GetConnectionString("ecommerce_DBcon")))
+            {
+                SqlCommand cmd = new SqlCommand("UPDATE UserDetails SET first_name = @first_name, last_name = @last_name, PhoneNumber = @PhoneNumber, date_of_birth=@date_of_birth, gender=@gender WHERE user_id = @u_id", con);
+                cmd.Parameters.AddWithValue("@u_id", userId);
+                cmd.Parameters.AddWithValue("@first_name", userDetails.first_name);
+                cmd.Parameters.AddWithValue("@last_name", userDetails.last_name);
+                cmd.Parameters.AddWithValue("@PhoneNumber", userDetails.phoneNumber.ToString());
+                cmd.Parameters.AddWithValue("@date_of_birth", userDetails.date_of_birth);
+                cmd.Parameters.AddWithValue("@gender", userDetails.gender);
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+                con.Close();
+
+                return Ok("Data updated");
+
+            }
+        }
+
+        [HttpPost]
+        [Route("UserAddresses")]
+        [Authorize]
+        public IActionResult UserAddresses()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Token is invalid or missing.");
+            }
+
+            if (int.TryParse(userIdClaim.Value, out int userId)) ;
 
             using (var con = new SqlConnection(_configuration.GetConnectionString("ecommerce_DBcon")))
             {
@@ -182,10 +227,10 @@ namespace ecommerce_website_backend.Controllers
             }
 
             if (int.TryParse(userIdClaim.Value, out int userId)) ;
-               
-         
-            
-            
+
+
+
+
             SqlConnection con = new SqlConnection(_configuration.GetConnectionString("ecommerce_DBcon"));
             SqlCommand cmd = new SqlCommand("INSERT INTO UserAddresses(user_id, Country, City, StreetName, HouseNumber, ApartmentNumber, PostalCode) Values(@userId,@Country,@City,@StreetName,@HouseNumber,@ApartmentNumber,@PostalCode)", con);
             cmd.Parameters.AddWithValue("@UserId", userId);
@@ -200,9 +245,67 @@ namespace ecommerce_website_backend.Controllers
             cmd.ExecuteNonQuery();
             con.Close();
 
-            return Ok("Data inserted");     
+            return Ok("Data inserted");
         }
-            
-    
+
+        [HttpPost]
+        [Route("UpdateAddress")]
+        [Authorize]
+        public IActionResult UpdateAddress(UpdatedAddress UpdatedAddress)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Token is invalid or missing.");
+            }
+
+            if (int.TryParse(userIdClaim.Value, out int userId)) ;
+
+
+
+
+            SqlConnection con = new SqlConnection(_configuration.GetConnectionString("ecommerce_DBcon"));
+            SqlCommand cmd = new SqlCommand("UPDATE UserAddresses SET Country=@Country, City=@City, StreetName=@StreetName, HouseNumber=@HouseNumber, PostalCode=@PostalCode WHERE address_id=@a_id ", con);
+            cmd.Parameters.AddWithValue("@a_id", UpdatedAddress.AddressId);
+            cmd.Parameters.AddWithValue("@Country", UpdatedAddress.Country);
+            cmd.Parameters.AddWithValue("@City", UpdatedAddress.City);
+            cmd.Parameters.AddWithValue("@StreetName", UpdatedAddress.StreetName);
+            cmd.Parameters.AddWithValue("@HouseNumber", UpdatedAddress.HouseNumber);
+            cmd.Parameters.AddWithValue("@ApartmentNumber", UpdatedAddress.ApartmentNumber);
+            cmd.Parameters.AddWithValue("@PostalCode", UpdatedAddress.PostalCode);
+            con.Open();
+            cmd.ExecuteNonQuery();
+            con.Close();
+
+            return Ok("Data Deleted");
+        }
+
+
+
+
+        [HttpPost]
+        [Route("DeleteAddress")]
+        [Authorize]
+        public IActionResult DeleteAddress(GetAddressId addressId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Token is invalid or missing.");
+            }
+
+            SqlConnection con = new SqlConnection(_configuration.GetConnectionString("ecommerce_DBcon"));
+            SqlCommand cmd = new SqlCommand("DELETE FROM UserAddresses WHERE address_id = @a_id", con);
+            cmd.Parameters.AddWithValue("@a_id", addressId.AddressId);
+
+            con.Open();
+            cmd.ExecuteNonQuery();
+            con.Close();
+
+            return Ok("Data Deleted");
+        }
+
     }
 }
+
+
