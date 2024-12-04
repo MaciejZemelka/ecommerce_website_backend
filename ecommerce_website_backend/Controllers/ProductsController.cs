@@ -149,10 +149,14 @@ namespace ecommerce_website_backend.Controllers
             ProductId = p.ProductId,
             Name = p.Name,
             Price = p.Price,
+            Description = p.Description,
+            Height = p.Height,
+            Gender = p.Gender,
             Variant = p.ProductVariants
                 .Where(v => v.Color == color)
                 .Select(v => new
                 {
+                    VariantId = v.VariantId,
                     Color = v.Color,
                     Images = v.ProductImages.Select(pi => new
                     {
@@ -173,6 +177,38 @@ namespace ecommerce_website_backend.Controllers
             }
 
             return Ok(product);
+        }
+
+        [HttpGet("GetVariants")]
+        public async Task<IActionResult> GetVariants(
+           [FromQuery] int? ProductId)
+        {
+            if (!ProductId.HasValue)
+            {
+                return BadRequest("ProductId is required.");
+            }
+
+            var query = _context.ProductVariants
+                    
+                .AsQueryable();
+
+            var variants = await _context.ProductVariants
+           .Where(v => v.ProductId == ProductId)
+           .Select(v => v.Color)
+           .ToListAsync();
+                    
+            if (variants == null)
+            {
+                return NotFound("Variants not found.");
+            }
+
+            var response = new
+            {
+                ProductId = ProductId.Value,
+                Colors = variants
+            };
+
+            return Ok(response);
         }
     }
 
